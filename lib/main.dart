@@ -5,6 +5,7 @@ import 'package:flutter_water_reminder_app/core/navigation/navigation_service.da
 import 'package:flutter_water_reminder_app/core/notifiers/provider_list.dart';
 import 'package:flutter_water_reminder_app/view_models/app_life_cycle_manager.dart';
 import 'package:flutter_water_reminder_app/views/home_view.dart';
+import 'package:flutter_water_reminder_app/views/tabbar_views/bottom_tabbar_view.dart';
 import 'package:provider/provider.dart';
 
 Future<void> main() async {
@@ -37,7 +38,7 @@ class MainApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         onGenerateRoute: NavigationRoute.instance.generateRoute,
         navigatorKey: NavigationService.instance.navigatorKey,
-        home: const HomeView(),
+        home: const BottomTabbarView(),
       ),
     );
   }
