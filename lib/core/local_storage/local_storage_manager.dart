@@ -11,9 +11,7 @@ class LocalStorageManager {
 
   LocalStorageManager._init();
 
-  static const _androidOptions = AndroidOptions(
-    encryptedSharedPreferences: true,
-  );
+  static const _androidOptions = AndroidOptions();
   static const _iosOptions = IOSOptions(
     accessibility: KeychainAccessibility.first_unlock,
   );

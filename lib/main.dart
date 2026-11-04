@@ -2,21 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_water_reminder_app/core/navigation/navigation_route.dart';
 import 'package:flutter_water_reminder_app/core/navigation/navigation_service.dart';
-import 'package:flutter_water_reminder_app/core/notifiers/provider_list.dart';
 import 'package:flutter_water_reminder_app/view_models/app_life_cycle_manager.dart';
-import 'package:flutter_water_reminder_app/views/home_view.dart';
 import 'package:flutter_water_reminder_app/views/tabbar_views/bottom_tabbar_view.dart';
-import 'package:provider/provider.dart';
 
 Future<void> main() async {
   await _init();
-
-  runApp(
-    MultiProvider(
-      providers: [...ApplicationProvider.instance.dependItems],
-      child: const MainApp(),
-    ),
-  );
 }
 
 Future<void> _init() async {
