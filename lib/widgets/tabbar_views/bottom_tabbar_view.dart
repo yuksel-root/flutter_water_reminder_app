@@ -51,7 +51,7 @@ class _BottomTabbarViewState extends State<BottomTabbarView> {
           ),
           BottomNavigationBarItem(
             icon: FaIcon(FontAwesomeIcons.noteSticky),
-            label: 'Values',
+            label: 'History',
           ),
           BottomNavigationBarItem(
             icon: FaIcon(FontAwesomeIcons.gamepad),

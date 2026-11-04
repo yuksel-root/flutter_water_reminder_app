@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_water_reminder_app/core/constants/navigation_constants.dart';
-import 'package:flutter_water_reminder_app/views/tabbar_views/bottom_tabbar_view.dart';
+import 'package:flutter_water_reminder_app/widgets/tabbar_views/bottom_tabbar_view.dart';
 
 class NavigationRoute {
   static final NavigationRoute _instance = NavigationRoute._init();
