@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "561937732713",
+    "project_id": "tr-flutter-water-reminder",
+    "storage_bucket": "tr-flutter-water-reminder.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:561937732713:android:369553c48aee82a21bbef8",
+        "android_client_info": {
+          "package_name": "com.example.flutter_water_reminder"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAHaytNnLL3GI7Pa930NxrDNmwzOxr6F8k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -34,16 +34,16 @@ class AppColors {
   static const List<Color> scoreColors = [Colors.white, Color(0xFF81D4FA)];
 
   static const List<Color> btnColors = [
-    const Color(0xFF1A237E), // Doygun Lacivert (Üst yansıma)
-    const Color(0xFF000428), // Gece Siyahı-Lacivert karışımı (Alt derinlik)
-    const Color(0xFF1A237E), // Doygun Lacivert (Üst yansıma)
-    const Color(0xFF000428), // Gece Siyahı-Lacivert karışımı (Alt derinlik)
-    const Color(0xFF1A237E), // Doygun Lacivert (Üst yansıma)
+    Color(0xFF1A237E),
+    Color(0xFF000428),
+    Color(0xFF1A237E),
+    Color(0xFF000428),
+    Color(0xFF1A237E),
   ];
 
   static const List<Color> alertButtons = [
-    Color(0xFF6A5ACD), // Slate Blue
-    Color(0xFF483D8B), // Dark Slate Blue
+    Color(0xFF6A5ACD),
+    Color(0xFF483D8B),
   ];
 
   static const List<Color> coolBlue = [
