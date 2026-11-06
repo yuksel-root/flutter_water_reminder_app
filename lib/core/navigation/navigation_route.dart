@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_water_reminder_app/core/constants/navigation_constants.dart';
+import 'package:flutter_water_reminder_app/views/history_view.dart';
+import 'package:flutter_water_reminder_app/views/settings_view.dart';
 import 'package:flutter_water_reminder_app/widgets/tabbar_views/bottom_tabbar_view.dart';
 
 class NavigationRoute {
@@ -13,6 +15,12 @@ class NavigationRoute {
     switch (settings.name) {
       case NavigationConstants.homeView:
         return pageNavigate(const BottomTabbarView(), settings);
+
+      case NavigationConstants.historyView:
+        return pageNavigate(const HistoryView(), settings);
+
+      case NavigationConstants.settingsView:
+        return pageNavigate(const SettingsView(), settings);
 
       default:
         return MaterialPageRoute<dynamic>(

@@ -3,14 +3,18 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 abstract class FirestoreRepository {
   FirestoreRepository({FirebaseFirestore? firestore, FirebaseAuth? auth})
-    : _firestore = firestore ?? FirebaseFirestore.instance,
-      _auth = auth ?? FirebaseAuth.instance;
+    : _firestore = firestore,
+      _auth = auth;
 
-  final FirebaseFirestore _firestore;
-  final FirebaseAuth _auth;
+  final FirebaseFirestore? _firestore;
+  final FirebaseAuth? _auth;
+
+  FirebaseFirestore get firestore => _firestore ?? FirebaseFirestore.instance;
+
+  FirebaseAuth get auth => _auth ?? FirebaseAuth.instance;
 
   String get userId {
-    final user = _auth.currentUser;
+    final user = auth.currentUser;
     if (user == null) {
       throw StateError('User is not signed in');
     }
@@ -18,6 +22,6 @@ abstract class FirestoreRepository {
   }
 
   CollectionReference<Map<String, dynamic>> userCollection(String name) {
-    return _firestore.collection('users').doc(userId).collection(name);
+    return firestore.collection('users').doc(userId).collection(name);
   }
 }

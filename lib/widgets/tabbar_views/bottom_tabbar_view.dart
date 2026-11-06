@@ -1,9 +1,7 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_water_reminder_app/core/constants/navigation_constants.dart';
-import 'package:flutter_water_reminder_app/core/navigation/navigation_service.dart';
+import 'package:flutter_water_reminder_app/views/history_view.dart';
 import 'package:flutter_water_reminder_app/views/home_view.dart';
+import 'package:flutter_water_reminder_app/views/settings_view.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class BottomTabbarView extends StatefulWidget {
@@ -14,20 +12,15 @@ class BottomTabbarView extends StatefulWidget {
 }
 
 class _BottomTabbarViewState extends State<BottomTabbarView> {
-  final NavigationService _navigation = NavigationService.instance;
-
   int _currentIndex = 0;
 
-  static const List<Widget> _screens = [HomeView(), HomeView(), HomeView()];
+  static const List<Widget> _screens = [
+    HomeView(),
+    HistoryView(),
+    SettingsView(),
+  ];
 
   void _onTap(int index) {
-    if (index == 3) {
-      unawaited(
-        _navigation.navigateToPage(path: NavigationConstants.settingsView),
-      );
-      return;
-    }
-
     setState(() {
       _currentIndex = index;
     });
@@ -37,27 +30,19 @@ class _BottomTabbarViewState extends State<BottomTabbarView> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(index: _currentIndex, children: _screens),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.blue,
-        currentIndex: _currentIndex,
-        onTap: _onTap,
-        selectedItemColor: Colors.grey,
-        unselectedItemColor: Colors.white,
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _currentIndex,
+        onDestinationSelected: _onTap,
+        destinations: const [
+          NavigationDestination(
             icon: FaIcon(FontAwesomeIcons.house),
             label: 'Home',
           ),
-          BottomNavigationBarItem(
+          NavigationDestination(
             icon: FaIcon(FontAwesomeIcons.noteSticky),
             label: 'History',
           ),
-          BottomNavigationBarItem(
-            icon: FaIcon(FontAwesomeIcons.gamepad),
-            label: 'Mini Game',
-          ),
-          BottomNavigationBarItem(
+          NavigationDestination(
             icon: FaIcon(FontAwesomeIcons.gear),
             label: 'Settings',
           ),
