@@ -1,76 +1,47 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_water_reminder_app/blocs/history/history_bloc.dart';
-import 'package:flutter_water_reminder_app/blocs/history/history_event.dart';
-import 'package:flutter_water_reminder_app/blocs/history/history_repository.dart';
-import 'package:flutter_water_reminder_app/blocs/home/home_bloc.dart';
-import 'package:flutter_water_reminder_app/blocs/home/home_event.dart';
-import 'package:flutter_water_reminder_app/blocs/home/home_repository.dart';
+import 'package:flutter_water_reminder_app/blocs/app_providers.dart';
 import 'package:flutter_water_reminder_app/blocs/settings/settings_cubit.dart';
-import 'package:flutter_water_reminder_app/blocs/settings/settings_repository.dart';
 import 'package:flutter_water_reminder_app/blocs/settings/settings_state.dart';
+import 'package:flutter_water_reminder_app/core/bootstrap/app_bootstrap.dart';
 import 'package:flutter_water_reminder_app/core/lifecycle/app_life_cycle_manager.dart';
 import 'package:flutter_water_reminder_app/core/navigation/navigation_route.dart';
 import 'package:flutter_water_reminder_app/core/navigation/navigation_service.dart';
-import 'package:flutter_water_reminder_app/firebase_options.dart';
 import 'package:flutter_water_reminder_app/models/app_settings.dart';
 import 'package:flutter_water_reminder_app/widgets/tabbar_views/bottom_tabbar_view.dart';
 
-Future<void> main() async {
-  await _init();
-  runApp(const MainApp());
-}
-
-Future<void> _init() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setEnabledSystemUIMode(
-    SystemUiMode.manual,
-    overlays: [SystemUiOverlay.bottom],
+
+  unawaited(
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.manual,
+      overlays: [SystemUiOverlay.bottom],
+    ),
   );
-  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-  await _initFirebase();
-}
+  unawaited(
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]),
+  );
 
-Future<void> _initFirebase() async {
-  try {
-    if (Firebase.apps.isEmpty) {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-    }
+  final bootstrap = AppBootstrap();
+  unawaited(bootstrap.initialize());
 
-    final auth = FirebaseAuth.instance;
-    if (auth.currentUser == null) {
-      await auth.signInAnonymously();
-    }
-  } catch (error, stackTrace) {
-    debugPrint('Firebase initialization failed: $error');
-    debugPrintStack(stackTrace: stackTrace);
-  }
+  runApp(MainApp(bootstrap: bootstrap));
 }
 
 class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+  const MainApp({super.key, required this.bootstrap});
+
+  final AppBootstrap bootstrap;
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(
-          create: (_) => SettingsCubit(SettingsRepository())..load(),
-        ),
-        BlocProvider(
-          create: (_) => HomeBloc(HomeRepository())..add(const HomeStarted()),
-        ),
-        BlocProvider(
-          create: (_) =>
-              HistoryBloc(HistoryRepository())..add(const HistoryStarted()),
-        ),
-      ],
-      child: const AppLifeCycleManager(child: _AppView()),
+    return AppProviders(
+      bootstrap: bootstrap,
+      child: AppLifeCycleManager(child: const _AppView()),
     );
   }
 }
