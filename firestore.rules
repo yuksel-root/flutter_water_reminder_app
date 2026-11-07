@@ -1,0 +1,119 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    function hasOnly(keys) {
+      return request.resource.data.keys().hasOnly(keys);
+    }
+
+    function hasAll(keys) {
+      return request.resource.data.keys().hasAll(keys);
+    }
+
+    function isDateKey(value) {
+      return value is string && value.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$');
+    }
+
+    function validWaterEntry() {
+      return hasOnly(['consumedMl', 'createdAt', 'date'])
+        && hasAll(['consumedMl', 'createdAt', 'date'])
+        && request.resource.data.consumedMl is int
+        && request.resource.data.consumedMl > 0
+        && request.resource.data.createdAt is timestamp
+        && isDateKey(request.resource.data.date);
+    }
+
+    function validWaterGoal() {
+      return hasOnly(['targetMl', 'period', 'startDate', 'endDate', 'isActive', 'createdAt', 'updatedAt'])
+        && hasAll(['targetMl', 'period', 'startDate', 'endDate', 'isActive', 'createdAt', 'updatedAt'])
+        && request.resource.data.targetMl is int
+        && request.resource.data.targetMl > 0
+        && request.resource.data.period in ['daily', 'weekly', 'monthly']
+        && request.resource.data.startDate is timestamp
+        && (request.resource.data.endDate == null || request.resource.data.endDate is timestamp)
+        && (request.resource.data.endDate == null || request.resource.data.endDate >= request.resource.data.startDate)
+        && request.resource.data.isActive is bool
+        && request.resource.data.createdAt is timestamp
+        && (request.resource.data.updatedAt == null || request.resource.data.updatedAt is timestamp);
+    }
+
+    function validWaterHistory() {
+      return hasOnly(['date', 'dateKey', 'dailyConsumedMl', 'dailyEntryCount', 'goalMl', 'createdAt'])
+        && hasAll(['date', 'dateKey', 'dailyConsumedMl', 'dailyEntryCount', 'goalMl', 'createdAt'])
+        && request.resource.data.date is timestamp
+        && isDateKey(request.resource.data.dateKey)
+        && request.resource.data.dailyConsumedMl is int
+        && request.resource.data.dailyConsumedMl >= 0
+        && request.resource.data.dailyEntryCount is int
+        && request.resource.data.dailyEntryCount >= 0
+        && request.resource.data.goalMl is int
+        && request.resource.data.goalMl > 0
+        && request.resource.data.createdAt is timestamp;
+    }
+
+    function validReminder() {
+      return hasOnly(['hour', 'minute', 'mode', 'soundName', 'isEnabled'])
+        && hasAll(['hour', 'minute', 'mode', 'soundName', 'isEnabled'])
+        && request.resource.data.hour is int
+        && request.resource.data.hour >= 0
+        && request.resource.data.hour <= 23
+        && request.resource.data.minute is int
+        && request.resource.data.minute >= 0
+        && request.resource.data.minute <= 59
+        && request.resource.data.mode in ['sound', 'vibration', 'silent']
+        && request.resource.data.soundName is string
+        && request.resource.data.isEnabled is bool;
+    }
+
+    function validSettings() {
+      return hasOnly(['themeMode', 'languageCode', 'waterUnit', 'notificationsEnabled'])
+        && hasAll(['themeMode', 'languageCode', 'waterUnit', 'notificationsEnabled'])
+        && request.resource.data.themeMode in ['system', 'light', 'dark']
+        && request.resource.data.languageCode is string
+        && request.resource.data.languageCode.size() >= 2
+        && request.resource.data.languageCode.size() <= 8
+        && request.resource.data.waterUnit in ['ml', 'oz']
+        && request.resource.data.notificationsEnabled is bool;
+    }
+
+    match /users/{userId} {
+      allow read, write: if false;
+
+      match /waterEntries/{entryId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && validWaterEntry();
+        allow delete: if isOwner(userId);
+      }
+
+      match /waterGoals/{goalId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && validWaterGoal();
+        allow delete: if isOwner(userId);
+      }
+
+      match /waterHistory/{historyId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId)
+          && validWaterHistory()
+          && historyId == request.resource.data.dateKey;
+        allow delete: if isOwner(userId);
+      }
+
+      match /waterReminders/{reminderId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && validReminder();
+        allow delete: if isOwner(userId);
+      }
+
+      match /settings/preferences {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && validSettings();
+        allow delete: if isOwner(userId);
+      }
+    }
+  }
+}
