@@ -31,13 +31,13 @@ class AuthService {
     }
   }
 
-  Future<AuthConnectionResult> connectGoogle() async {
+  Future<AuthConnectionResult?> connectGoogle() async {
     final auth = _firebaseAuth;
     final provider = GoogleAuthProvider();
     final currentUser = auth.currentUser;
 
     if (kIsWeb) {
-      return _connectGoogleWithPopup(auth, provider, currentUser);
+      return _connectGoogleWithPopupOrRedirect(auth, provider, currentUser);
     }
 
     if (currentUser == null) {
@@ -71,7 +71,21 @@ class AuthService {
     }
   }
 
-  Future<AuthConnectionResult> _connectGoogleWithPopup(
+  Future<AuthConnectionResult?> _connectGoogleWithPopupOrRedirect(
+    FirebaseAuth auth,
+    GoogleAuthProvider provider,
+    User? currentUser,
+  ) async {
+    try {
+      return await _connectGoogleWithPopup(auth, provider, currentUser);
+    } on FirebaseAuthException catch (error) {
+      if (!_shouldRetryWithRedirect(error)) rethrow;
+    }
+
+    return _connectGoogleWithRedirect(auth, provider, auth.currentUser);
+  }
+
+  Future<AuthConnectionResult?> _connectGoogleWithPopup(
     FirebaseAuth auth,
     GoogleAuthProvider provider,
     User? currentUser,
@@ -105,6 +119,43 @@ class AuthService {
       }
       rethrow;
     }
+  }
+
+  bool _shouldRetryWithRedirect(FirebaseAuthException error) {
+    final message = error.message?.toLowerCase() ?? '';
+    if (message.contains('missing initial state') ||
+        message.contains('sessionstorage') ||
+        message.contains('cross-origin-opener-policy')) {
+      return true;
+    }
+
+    switch (error.code) {
+      case 'popup-blocked':
+      case 'operation-not-supported-in-this-environment':
+      case 'web-storage-unsupported':
+        return true;
+      case 'internal-error':
+        return true;
+    }
+    return false;
+  }
+
+  Future<AuthConnectionResult?> _connectGoogleWithRedirect(
+    FirebaseAuth auth,
+    GoogleAuthProvider provider,
+    User? currentUser,
+  ) async {
+    if (currentUser == null) {
+      await auth.signInWithRedirect(provider);
+      return null;
+    }
+
+    if (!currentUser.isAnonymous) {
+      return AuthConnectionResult(user: currentUser, linked: false);
+    }
+
+    await currentUser.linkWithRedirect(provider);
+    return null;
   }
 
   User _requireUser(User? user) {

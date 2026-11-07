@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.yuksel.flutter.water.reminder"
+    namespace = "com.yuksi.flutter.water.reminder"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -21,7 +21,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.yuksel.flutter.water.reminder"
+        applicationId = "com.yuksi.flutter.water.reminder"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

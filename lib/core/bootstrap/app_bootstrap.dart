@@ -14,8 +14,14 @@ class AppBootstrap {
   );
 
   Future<void>? _inFlight;
+  User? _redirectUser;
+  String? _redirectError;
 
   bool get isReady => status.value == BootstrapStatus.ready;
+
+  bool get googleRedirectCompleted => _redirectUser != null;
+
+  String? get redirectError => _redirectError;
 
   Future<void> initialize() {
     final existing = _inFlight;
@@ -48,6 +54,23 @@ class AppBootstrap {
       _configureFirestore();
 
       final auth = FirebaseAuth.instance;
+
+      if (kIsWeb) {
+        try {
+          final result = await auth.getRedirectResult().timeout(
+            const Duration(seconds: 12),
+          );
+          _redirectUser = result.user;
+        } on FirebaseAuthException catch (error) {
+          _redirectError = error.message ?? error.code;
+          debugPrint('Redirect sign-in could not be completed: $error');
+        } catch (error, stackTrace) {
+          _redirectError = error.toString();
+          debugPrint('Redirect sign-in could not be completed: $error');
+          debugPrintStack(stackTrace: stackTrace);
+        }
+      }
+
       if (auth.currentUser == null) {
         await auth.signInAnonymously().timeout(const Duration(seconds: 12));
       }

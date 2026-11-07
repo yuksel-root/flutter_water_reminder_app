@@ -1,4 +1,4 @@
-package com.yuksel.flutter.water.reminder
+package com.yuksi.flutter.water.reminder
 
 import io.flutter.embedding.android.FlutterActivity
 

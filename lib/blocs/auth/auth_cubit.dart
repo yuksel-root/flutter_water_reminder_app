@@ -14,19 +14,31 @@ class AuthCubit extends Cubit<AuthState> {
 
   final AuthService _service;
   final AppBootstrap _bootstrap;
-
   StreamSubscription<User?>? _subscription;
   bool _subscribed = false;
 
   void _onBootstrapChanged() {
-    if (_bootstrap.status.value != BootstrapStatus.ready) return;
-    if (_subscribed || isClosed) return;
+    if (isClosed ||
+        _bootstrap.status.value != BootstrapStatus.ready ||
+        _subscribed) {
+      return;
+    }
 
     _subscribed = true;
     final user = _service.currentUser;
+    final redirectError = _bootstrap.redirectError;
 
-    emit(state.copyWith(user: user, clearUser: user == null, isLoading: false));
-
+    emit(
+      state.copyWith(
+        user: user,
+        clearUser: user == null,
+        successMessage: _bootstrap.googleRedirectCompleted
+            ? 'Google account connected.'
+            : null,
+        errorMessage: redirectError,
+        clearError: redirectError == null,
+      ),
+    );
     _subscription = _service.authStateChanges.listen(_onAuthChanged);
   }
 
@@ -46,18 +58,25 @@ class AuthCubit extends Cubit<AuthState> {
       }
 
       if (!_bootstrap.isReady) {
-        emit(
-          state.copyWith(
-            isLoading: false,
-            errorMessage:
-                'Could not reach Firebase. Check your internet connection.',
-          ),
-        );
+        if (!isClosed) {
+          emit(
+            state.copyWith(
+              isLoading: false,
+              errorMessage:
+                  'Could not reach Firebase. Check your internet connection.',
+            ),
+          );
+        }
         return;
       }
 
       final result = await _service.connectGoogle();
       if (isClosed) return;
+
+      if (result == null) {
+        emit(state.copyWith(isLoading: false));
+        return;
+      }
 
       emit(
         state.copyWith(
@@ -73,7 +92,9 @@ class AuthCubit extends Cubit<AuthState> {
       if (error.code == 'popup-closed-by-user' ||
           error.code == 'cancelled-popup-request' ||
           error.code == 'web-context-canceled') {
-        if (!isClosed) emit(state.copyWith(isLoading: false));
+        if (!isClosed) {
+          emit(state.copyWith(isLoading: false));
+        }
         return;
       }
 
