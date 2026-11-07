@@ -1,30 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_water_reminder_app/blocs/edit_goal/edit_goal_cubit.dart';
+import 'package:flutter_water_reminder_app/blocs/edit_goal/edit_goal_state.dart';
 
 Future<int?> showEditGoalDialog(BuildContext context, int currentGoalMl) {
   return showDialog<int>(
     context: context,
-    builder: (context) => EditGoalDialog(initialGoalMl: currentGoalMl),
+    builder: (context) => BlocProvider(
+      create: (_) => EditGoalCubit(currentGoalMl),
+      child: const EditGoalDialog(),
+    ),
   );
 }
 
-class EditGoalDialog extends StatefulWidget {
-  const EditGoalDialog({super.key, required this.initialGoalMl});
-
-  final int initialGoalMl;
+class EditGoalDialog extends StatelessWidget {
+  const EditGoalDialog({super.key});
 
   @override
-  State<EditGoalDialog> createState() => _EditGoalDialogState();
+  Widget build(BuildContext context) {
+    return const _EditGoalDialogView();
+  }
 }
 
-class _EditGoalDialogState extends State<EditGoalDialog> {
+class _EditGoalDialogView extends StatefulWidget {
+  const _EditGoalDialogView();
+
+  @override
+  State<_EditGoalDialogView> createState() => _EditGoalDialogViewState();
+}
+
+class _EditGoalDialogViewState extends State<_EditGoalDialogView> {
   late final TextEditingController _controller;
-  String? _errorText;
 
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController(text: widget.initialGoalMl.toString());
+    _controller = TextEditingController(
+      text: context.read<EditGoalCubit>().state.amount,
+    );
   }
 
   @override
@@ -34,39 +48,50 @@ class _EditGoalDialogState extends State<EditGoalDialog> {
   }
 
   void _save() {
-    final value = int.tryParse(_controller.text.trim());
-
-    if (value == null || value <= 0) {
-      setState(() => _errorText = 'Enter a goal greater than zero');
-      return;
-    }
-
+    final value = context.read<EditGoalCubit>().validate();
+    if (value == null) return;
     Navigator.of(context).pop(value);
   }
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Daily goal'),
-      content: TextField(
-        controller: _controller,
-        autofocus: true,
-        keyboardType: TextInputType.number,
-        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-        decoration: InputDecoration(
-          labelText: 'Goal',
-          suffixText: 'ml',
-          errorText: _errorText,
-        ),
-        onSubmitted: (_) => _save(),
+    return BlocListener<EditGoalCubit, EditGoalState>(
+      listenWhen: (previous, current) => previous.amount != current.amount,
+      listener: (context, state) {
+        if (_controller.text == state.amount) return;
+        _controller.value = TextEditingValue(
+          text: state.amount,
+          selection: TextSelection.collapsed(offset: state.amount.length),
+        );
+      },
+      child: BlocBuilder<EditGoalCubit, EditGoalState>(
+        builder: (context, state) {
+          return AlertDialog(
+            title: const Text('Daily goal'),
+            content: TextField(
+              controller: _controller,
+              autofocus: true,
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              decoration: InputDecoration(
+                labelText: 'Goal',
+                suffixText: 'ml',
+                errorText: state.errorMessage,
+              ),
+              onChanged: (value) =>
+                  context.read<EditGoalCubit>().amountChanged(value),
+              onSubmitted: (_) => _save(),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(onPressed: _save, child: const Text('Save')),
+            ],
+          );
+        },
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
-        ),
-        FilledButton(onPressed: _save, child: const Text('Save')),
-      ],
     );
   }
 }

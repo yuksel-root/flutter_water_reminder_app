@@ -1,4 +1,6 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter_water_reminder_app/models/water/water_entry.dart';
+import 'package:flutter_water_reminder_app/models/water/water_goal.dart';
 
 sealed class HomeEvent extends Equatable {
   const HomeEvent();
@@ -31,4 +33,14 @@ final class HomeGoalUpdated extends HomeEvent {
 
   @override
   List<Object?> get props => [targetMl];
+}
+
+final class HomeRemoteUpdated extends HomeEvent {
+  const HomeRemoteUpdated({required this.entries, required this.activeGoal});
+
+  final List<WaterEntry> entries;
+  final WaterGoal? activeGoal;
+
+  @override
+  List<Object?> get props => [entries, activeGoal];
 }

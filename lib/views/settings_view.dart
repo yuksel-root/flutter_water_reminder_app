@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_water_reminder_app/blocs/auth/auth_cubit.dart';
+import 'package:flutter_water_reminder_app/blocs/auth/auth_state.dart';
 import 'package:flutter_water_reminder_app/blocs/home/home_bloc.dart';
 import 'package:flutter_water_reminder_app/blocs/home/home_event.dart';
 import 'package:flutter_water_reminder_app/blocs/home/home_state.dart';
@@ -41,6 +43,18 @@ class SettingsView extends StatelessWidget {
                   _SettingsErrorBanner(message: state.errorMessage),
                   const SizedBox(height: 16),
                 ],
+                _SettingsSection(
+                  title: 'Account',
+                  icon: Icons.account_circle_outlined,
+                  children: [
+                    BlocBuilder<AuthCubit, AuthState>(
+                      builder: (context, authState) {
+                        return _AccountSection(authState: authState);
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
                 _SettingsSection(
                   title: 'Appearance',
                   icon: Icons.palette_outlined,
@@ -156,6 +170,100 @@ class SettingsView extends StatelessWidget {
         mode: ReminderMode.sound,
         soundName: 'default',
       ),
+    );
+  }
+}
+
+class _AccountSection extends StatelessWidget {
+  const _AccountSection({required this.authState});
+
+  final AuthState authState;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final user = authState.user;
+
+    if (authState.isGoogleConnected && user != null) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: CircleAvatar(
+              backgroundImage: user.photoURL == null
+                  ? null
+                  : NetworkImage(user.photoURL!),
+              child: user.photoURL == null
+                  ? const Icon(Icons.person_outline)
+                  : null,
+            ),
+            title: Text(user.displayName ?? 'Google account'),
+            subtitle: Text(user.email ?? 'Connected'),
+            trailing: Icon(Icons.verified, color: colorScheme.primary),
+          ),
+          if (authState.successMessage != null)
+            Text(
+              authState.successMessage!,
+              style: TextStyle(color: colorScheme.primary),
+            ),
+          if (authState.errorMessage != null)
+            Text(
+              authState.errorMessage!,
+              style: TextStyle(color: colorScheme.error),
+            ),
+        ],
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: Icon(Icons.person_outline),
+          title: Text('Guest'),
+          subtitle: Text(
+            'Your data is stored anonymously until you connect Google.',
+          ),
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton.icon(
+            onPressed: authState.isLoading
+                ? null
+                : () => context.read<AuthCubit>().connectGoogle(),
+            icon: authState.isLoading
+                ? SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: colorScheme.onPrimary,
+                    ),
+                  )
+                : const Icon(Icons.login),
+            label: Text(
+              authState.isLoading ? 'Connecting...' : 'Connect Google',
+            ),
+          ),
+        ),
+        if (authState.errorMessage != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            authState.errorMessage!,
+            style: TextStyle(color: colorScheme.error),
+          ),
+        ],
+        if (authState.successMessage != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            authState.successMessage!,
+            style: TextStyle(color: colorScheme.primary),
+          ),
+        ],
+      ],
     );
   }
 }

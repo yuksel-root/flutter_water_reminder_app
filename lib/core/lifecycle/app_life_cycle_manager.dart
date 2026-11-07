@@ -24,11 +24,5 @@ class _AppLifeCycleManagerState extends State<AppLifeCycleManager>
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-    debugPrint('LifeCycleState = $state');
-  }
-
-  @override
   Widget build(BuildContext context) => widget.child;
 }

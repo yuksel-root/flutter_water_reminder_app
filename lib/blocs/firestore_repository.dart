@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 abstract class FirestoreRepository {
   FirestoreRepository({FirebaseFirestore? firestore, FirebaseAuth? auth})
@@ -12,6 +13,14 @@ abstract class FirestoreRepository {
   FirebaseFirestore get firestore => _firestore ?? FirebaseFirestore.instance;
 
   FirebaseAuth get auth => _auth ?? FirebaseAuth.instance;
+
+  bool get canUseFirestore {
+    try {
+      return Firebase.apps.isNotEmpty && auth.currentUser != null;
+    } catch (_) {
+      return false;
+    }
+  }
 
   String get userId {
     final user = auth.currentUser;
