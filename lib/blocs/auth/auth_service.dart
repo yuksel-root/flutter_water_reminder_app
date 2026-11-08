@@ -33,20 +33,35 @@ class AuthService {
 
   Future<AuthConnectionResult?> connectGoogle() async {
     final auth = _firebaseAuth;
-    final provider = GoogleAuthProvider();
-    final currentUser = auth.currentUser;
+    final provider = GoogleAuthProvider()
+      ..setCustomParameters({'prompt': 'select_account'});
 
     if (kIsWeb) {
-      return _connectGoogleWithPopupOrRedirect(auth, provider, currentUser);
+      return _connectGoogleOnWeb(auth, provider);
     }
 
-    if (currentUser == null) {
-      final result = await auth.signInWithProvider(provider);
-      return AuthConnectionResult(
-        user: _requireUser(result.user),
-        linked: false,
-      );
+    return _connectGoogleOnNative(auth, provider);
+  }
+
+  Future<AuthConnectionResult?> _connectGoogleOnWeb(
+    FirebaseAuth auth,
+    GoogleAuthProvider provider,
+  ) async {
+    try {
+      return await _connectGoogleWithPopup(auth, provider, auth.currentUser);
+    } on FirebaseAuthException catch (error) {
+      if (!_shouldRetryWithRedirect(error)) rethrow;
     }
+
+    return _connectGoogleWithRedirect(auth, provider, auth.currentUser);
+  }
+
+  Future<AuthConnectionResult> _connectGoogleOnNative(
+    FirebaseAuth auth,
+    GoogleAuthProvider provider,
+  ) async {
+    final user = auth.currentUser ?? (await auth.signInAnonymously()).user;
+    final currentUser = _requireUser(user);
 
     if (!currentUser.isAnonymous) {
       return AuthConnectionResult(user: currentUser, linked: false);
@@ -69,20 +84,6 @@ class AuthService {
       }
       rethrow;
     }
-  }
-
-  Future<AuthConnectionResult?> _connectGoogleWithPopupOrRedirect(
-    FirebaseAuth auth,
-    GoogleAuthProvider provider,
-    User? currentUser,
-  ) async {
-    try {
-      return await _connectGoogleWithPopup(auth, provider, currentUser);
-    } on FirebaseAuthException catch (error) {
-      if (!_shouldRetryWithRedirect(error)) rethrow;
-    }
-
-    return _connectGoogleWithRedirect(auth, provider, auth.currentUser);
   }
 
   Future<AuthConnectionResult?> _connectGoogleWithPopup(
